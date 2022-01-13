@@ -278,7 +278,8 @@ kn service create 'hybrid-cloud-backend' --image=quay.io/agroom/hybrid-cloud-app
   --annotation autoscaling.knative.dev/window="16s" \
   --concurrency-limit 1 \
   --env CLOUDID=cloud1 --namespace cloud1
-skupper expose service hybrid-cloud-backend.cloud1 --port 80 --address hybrid-cloud-backend-skupper --protocol http -n cloud1
+skupper expose service hybrid-cloud-backend.cloud1 --port 80 \
+  --address hybrid-cloud-backend-skupper --protocol http -n cloud1
 ----
 
 === Cloud2
@@ -291,7 +292,8 @@ kn service create 'hybrid-cloud-backend' --image=quay.io/agroom/hybrid-cloud-app
   --annotation autoscaling.knative.dev/window="16s" \
   --concurrency-limit 1 \
   --env CLOUDID=cloud2 --namespace cloud2
-skupper expose service hybrid-cloud-backend.cloud2 --port 80 --address hybrid-cloud-backend-skupper  --protocol http -n cloud2
+skupper expose service hybrid-cloud-backend.cloud2 --port 80 \
+  --address hybrid-cloud-backend-skupper  --protocol http -n cloud2
 ----
   
 === Cloud 3
@@ -304,7 +306,8 @@ kn service create 'hybrid-cloud-backend' --image=quay.io/agroom/hybrid-cloud-app
   --annotation autoscaling.knative.dev/window="16s" \
   --concurrency-limit 1 \
   --env CLOUDID=cloud3 --namespace cloud3
-skupper expose service hybrid-cloud-backend.cloud3 --port 80 --address hybrid-cloud-backend-skupper --protocol http -n cloud3
+skupper expose service hybrid-cloud-backend.cloud3 --port 80 \
+  --address hybrid-cloud-backend-skupper --protocol http -n cloud3
 ----
 
 == Burst Testing
@@ -324,7 +327,8 @@ In order to burst from Cloud-1 to Cloud-2, you need to send atleast `{cloud-2-we
 
 [source,bash,subs="macros+,attributes+"]
 ----
-hey -z 2s -c 20 -m POST -d '{"text": "1+2","uppercase": false,"reverse": false}' -H "Content-Type: application/json" $API_URL/api/send-request
+hey -z 2s -c 20 -m POST -d '{"text": "1+2","uppercase": false,"reverse": false}' \
+  -H "Content-Type: application/json" $API_URL/api/send-request
 ----
 
 === Cloud-1 burst to Cloud-2 burst to Cloud-3
@@ -333,5 +337,6 @@ In order to burst from Cloud-1 to Cloud-2, you need to send atleast `{cloud-2-we
 
 [source,bash,subs="macros+,attributes+"]
 ----
-hey -z 2s -c 35 -m POST -d '{"text": "1+2+3","uppercase": false,"reverse": false}' -H "Content-Type: application/json" $API_URL/api/send-request
+hey -z 2s -c 35 -m POST -d '{"text": "1+2+3","uppercase": false,"reverse": false}' \
+  -H "Content-Type: application/json" $API_URL/api/send-request
 ----
