@@ -121,7 +121,7 @@ An existing image is used, slightly modified from the
 original demo since it makes the payload labelling easier. The image is Java/Quarkus but in JVM mode. A more advanced 
 demo would rebuild this a native image to improve the startup (and bursting) time.
 
-The source code can be found here https://github.com/alexgroom/hybrid-cloud-backend.git
+The source code can be found here https://github.com/alexgroom/hybrid-cloud-app-backend.git
 
 Note the use of the CLOUDID env. This is used to distinguish the traffic coming from each backend. 
 A more advanced demo might use this field to represent the cluster type in use eg AWS, GCP, Azure
