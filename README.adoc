@@ -18,9 +18,9 @@ but has been simplified and made specific to OpenShift, Skupper CLI and kn CLI r
 
 == Prerequisites
 
-For a basic demo you need an OpenShift cluster at least with 3 namespaces and non-privelged account
+For a basic demo you need an OpenShift cluster at least with 3 namespaces and non-priveleged account
 
-For the advanced demo, you need 3 seperate OpenShift clusters with skupper used to span the namespaces and again
+For the advanced demo, you need 3 separate OpenShift clusters with skupper used to span the namespaces and again
 non-privileged account.
 
 You must install OpenShift Serverless via the Operator and at least create the Serving instance 
@@ -323,7 +323,7 @@ export API_URL=http://$(oc get route -n cloud1 hybrid-cloud-frontend -ojsonpath=
 
 === Cloud-1 burst to Cloud-2
 
-In order to burst from Cloud-1 to Cloud-2, you need to send atleast `{cloud-2-weight}` requests to the API:
+In order to burst from Cloud-1 to Cloud-2, you need to send at least `{cloud-2-weight}` requests to the API:
 
 [source,bash,subs="macros+,attributes+"]
 ----
@@ -333,7 +333,7 @@ hey -z 2s -c 20 -m POST -d '{"text": "1+2","uppercase": false,"reverse": false}'
 
 === Cloud-1 burst to Cloud-2 burst to Cloud-3
 
-In order to burst from Cloud-1 to Cloud-2, you need to send atleast `{cloud-2-weight} + {cloud-3-weight} = 35` requests to the API:
+In order to burst from Cloud-1 to Cloud-2, you need to send at least `{cloud-2-weight} + {cloud-3-weight} = 35` requests to the API:
 
 [source,bash,subs="macros+,attributes+"]
 ----
