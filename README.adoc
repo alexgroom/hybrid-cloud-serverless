@@ -1,34 +1,33 @@
-# hybrid-cloud-serverless
-Hybrid cloud demo with serverless
-
-= Hybrid Cloud
+= Hybrid Cloud demo with Serverless
 :experimental:
-:cloud-1: gcp
+:cloud-1: cloud1
 :cloud-1-weight: 0
-:cloud-2: azr
+:cloud-2: cloud2
 :cloud-2-weight: 15
-:cloud-3: aws
+:cloud-3: cloud3
 :cloud-3-weight: 20
 
-image:https://img.shields.io/badge/OpenShift-v4.5.x-red?style=for-the-badge[link=https://try.openshift.com]
-image:https://img.shields.io/badge/OpenShift%20Serverless-v1.10-red?style=for-the-badge[link=
+image:https://img.shields.io/badge/OpenShift-v4.8.x-red?style=for-the-badge[link=https://try.openshift.com]
+image:https://img.shields.io/badge/OpenShift%20Serverless-v1.19-red?style=for-the-badge[link=
 https://www.openshift.com/learn/topics/serverless]
-image:https://img.shields.io/badge/skupper-v0.3.0-red?style=for-the-badge[link=
+image:https://img.shields.io/badge/skupper-v0.8.1-red?style=for-the-badge[link=
 https://skupper.io]
 
-This description is heavly based on the repo https://github.com/redhat-developer-demos/hybrid-cloud-serverless
-but has been simplified and made specific to OpenShift, Skupper CLI and kn CLI rather than kubectl yaml
+This description is heavily based on the repo https://github.com/redhat-developer-demos/hybrid-cloud-serverless
+but has been simplified and made specific to OpenShift, Skupper CLI and kn CLI rather than yaml/kustomize and kubectl.
 
 == Prerequisites
 
-You need an OpenShift cluster at least with 3 namespaces and non-privelged account
+For a basic demo you need an OpenShift cluster at least with 3 namespaces and non-privelged account
 
-The advanced demo uses 3 seperate OpenShift clusters with skupper used to span the namespaces.
+For the advanced demo, you need 3 seperate OpenShift clusters with skupper used to span the namespaces and again
+non-privileged account.
 
-You must install OpenShift Serverless via the Operator and at least create the Serving instance on each cluster
+You must install OpenShift Serverless via the Operator and at least create the Serving instance 
+on each cluster (this does require cluster admin)
 
-These demos all use http to communicate. Knative Serving now supports mTLS which breaks things so suggest 
-this change to force http. https://docs.openshift.com/container-platform/4.8/serverless/serverless-release-notes.html
+These demos all use http to communicate. Knative Serving now supports mTLS which breaks simple things so suggest 
+this change to force use of http. https://docs.openshift.com/container-platform/4.8/serverless/serverless-release-notes.html
 
 You can override the default by adding the following YAML to your KnativeServing custom resource (CR):
 
@@ -49,22 +48,17 @@ The following table shows the cloud and what components gets installed on each o
 [cols="<2,^1,^1,^1", options="header"]
 |===
 | Component | Cloud-1  |  Cloud-2 | Cloud-3
-| Cloud Provider  | {cloud-1}  |  {cloud-2} | {cloud-3}
 | Backend   | &#x2713;  | &#x2713;  | &#x2713;
 | Frontend  | &#x2713;  | &#x274C; | &#x274C;
-| Generate Site Token(`token.yaml`)  | &#x2713;  | &#x274C; | &#x274C;
+| Generate Site Tokens(`tok*.yaml`)  | &#x2713;  | &#x274C; | &#x274C;
 | Weight    | 0 | 15 | 20
 |===
 
-[NOTE]
-====
-* You can use any cloud provider for any OpenShift4 supported cloud
-* *Weight* controls how many requests that cloud can handle before skupper bursts them out to other clouds
-====
 
-=== Single cluster multiple namespaces
+== Single cluster, multiple namespaces
 
-Before the `backend` or `frontend` applications are deployed, execute the following to setup the namespaces:
+Before the `backend` or `frontend` applications are deployed, execute the following to setup the namespaces. 
+We are assuming simple RHPDS based auth here, but your cluster may differ:
 
 [source,bash]
 ----
@@ -84,7 +78,7 @@ skupper init -n cloud3
 ----
 
 Now link the projects with skupper by creating tokens on cloud1 and sharing them with the other
-projects to link them. The tokens by default have a short expiry time and can only be used once
+projects to link them. The tokens by default have a short expiry time and can only be used once.
 
 The links created between the projects have a weighting so traffic is preferred locally, then cloud2 
 and if really necessary cloud3
@@ -94,7 +88,7 @@ and if really necessary cloud3
 skupper token create tok1.yaml -n cloud1
 skupper token create tok2.yaml -n cloud1
 skupper link create tok1.yaml  -n cloud2 --cost 15
-skupper link create tok2.yaml  -n cloud2 --cost 20
+skupper link create tok2.yaml  -n cloud3 --cost 20
 ----
 
 Now check the status of skupper to make sure all the links are good.
@@ -104,9 +98,10 @@ Now check the status of skupper to make sure all the links are good.
 skupper status -n cloud1
 skupper status -n cloud2
 skupper status -n cloud3
----
+----
 
-Now for Cloud1 deploy the (only) front end application. We use an existing image for this:
+Now for Cloud1 deploy the front end application. We use an existing image for this from
+the original rhdevelopers repo.
 
 [source,bash]
 ----
@@ -116,12 +111,17 @@ oc new-app --name='hybrid-cloud-frontend' quay.io/rhdevelopers/hybrid-cloud-demo
   --env KNATIVE_BURST_SLEEP_MILLISECONDS=2000 \
  -n cloud1
 oc expose svc/hybrid-cloud-frontend -n cloud1
----
+----
 
 Now for each project deploy the backend system. This is a Serverless based app so first install
-the kn CLI so this script can execute. Again an existing image is used, sligjhtly modified from the 
-original demo since it makes labelling easier. The image is Java/Quarkus bu in JVM mode. A more advanced 
-demo would rebuild this a native image so improve the startup (and bursting) time.
+the kn CLI so this script can execute. You can download kn CLI from your OpenShift web console, lookup under
+the (?) symbol and command line tools.
+
+An existing image is used, slightly modified from the 
+original demo since it makes the payload labelling easier. The image is Java/Quarkus but in JVM mode. A more advanced 
+demo would rebuild this a native image to improve the startup (and bursting) time.
+
+The source code can be found here https://github.com/alexgroom/hybrid-cloud-backend.git
 
 Note the use of the CLOUDID env. This is used to distinguish the traffic coming from each backend. 
 A more advanced demo might use this field to represent the cluster type in use eg AWS, GCP, Azure
@@ -149,29 +149,20 @@ kn service create 'hybrid-cloud-backend' --image=quay.io/agroom/hybrid-cloud-app
   --annotation autoscaling.knative.dev/window="16s" \
   --concurrency-limit 1 \
   --env CLOUDID=cloud3 --namespace cloud3
----
+----
 
 Finally we have to expose the back-end services to skupper, which in turn then expose these backend services 
 to the frontend.
 
 [source,bash]
 ----
-skupper expose service hybrid-cloud-backend.cloud1 --port 80 --address hybrid-cloud-backend-skupper --protocol http -n cloud1
-skupper expose service hybrid-cloud-backend.cloud2 --port 80 --address hybrid-cloud-backend-skupper  --protocol http -n cloud2
-skupper expose service hybrid-cloud-backend.cloud3 --port 80 --address hybrid-cloud-backend-skupper --protocol http -n cloud3
----
-
-=== Cloud-1
-
-
-=== Cloud-2
-
-
-=== Cloud-3
-
-
-Run the following commands on *Cloud-1*, *Cloud-2* and *Cloud-3* to wait for skupper deployments to be ready:
-
+skupper expose service hybrid-cloud-backend.cloud1 --port 80 \
+  --address hybrid-cloud-backend-skupper --protocol http -n cloud1
+skupper expose service hybrid-cloud-backend.cloud2 --port 80 \
+  --address hybrid-cloud-backend-skupper  --protocol http -n cloud2
+skupper expose service hybrid-cloud-backend.cloud3 --port 80 \
+  --address hybrid-cloud-backend-skupper --protocol http -n cloud3
+----
 
 Run the following command to check the status:
 
@@ -204,13 +195,121 @@ NAME                                               URL                          
 service.serving.knative.dev/hybrid-cloud-backend    http://hybrid-cloud-backend.hybrid-cloud-demo.svc.cluster.local   hybrid-cloud-backend-p948k   hybrid-cloud-backend-p948k   True
 ----
 
-== Connecting Clouds
+== Multiple Clusters
 
+For this scenario, assume you have 3 terminals, each logged into the respective cluster, 1 2 and 3.
 
-The `site-token` seceret will be used to connect clouds *Cloud-2* and *Cloud-3* to *Cloud-1* forming a _Virtual Application Network(VAN)_. 
+=== Cloud1
 
-Run the following command to export the `site-token` secret:
+Before the `backend` or `frontend` applications are deployed, execute the following to setup the namespaces. 
+We are assuming simple RHPDS based auth here, but your cluster may differ:
+Install the Skupper CLI and then execute the following installing skupper into each project
 
+[source,bash]
+----
+oc login -u user1 -p openshift
+oc new-project cloud1
+skupper init -n cloud1
+skupper token create tok1.yaml -n cloud1
+skupper token create tok2.yaml -n cloud1
+----
+
+Copy the token files so they can be accessed on the terminal for cloud2 and 3. 
+The tokens by default have a short expiry time and can only be used once.
+
+=== Cloud2
+
+[source,bash]
+----
+oc login -u user1 -p openshift
+oc new-project cloud2
+skupper init -n cloud2
+skupper link create tok1.yaml  -n cloud2 --cost 15
+----
+
+=== Cloud3
+
+[source,bash]
+----
+oc login -u user1 -p openshift
+oc new-project cloud3
+skupper init -n cloud3
+skupper link create tok2.yaml  -n cloud3 --cost 20
+----
+
+Now check the status of skupper to make sure all the links are good.
+
+=== Cloud1, 2, 3
+
+[source,bash]
+----
+skupper status
+----
+
+=== Cloud1
+
+Now for Cloud1 deploy the front end application. We use an existing image for this from
+the original rhdevelopers repo.
+
+[source,bash]
+----
+oc new-app --name='hybrid-cloud-frontend' quay.io/rhdevelopers/hybrid-cloud-demo-frontend \
+  --env COM_REDHAT_DEVELOPERS_DEMO_SERVICE_BACKENDSERVICECLIENT_MP_REST_URL='http://hybrid-cloud-backend-skupper' \
+  --env KNATIVE_BURST=true \
+  --env KNATIVE_BURST_SLEEP_MILLISECONDS=2000 \
+ -n cloud1
+oc expose svc/hybrid-cloud-frontend -n cloud1
+----
+
+Now for each project deploy the backend system. This is a Serverless based app so first install
+the kn CLI so this script can execute. You can download kn CLI from your OpenShift web console, lookup under
+the (?) symbol and command line tools.
+
+Finally we have to expose the back-end services to skupper, which in turn then expose these backend services 
+to the frontend.
+
+=== Cloud1
+
+[source,bash]
+----
+kn service create 'hybrid-cloud-backend' --image=quay.io/agroom/hybrid-cloud-app-backend:latest \
+  --label='app.openshift.io/runtime=quarkus'  \
+  --annotation autoscaling.knative.dev/maxScale="1" \
+  --annotation autoscaling.knative.dev/window="16s" \
+  --concurrency-limit 1 \
+  --env CLOUDID=cloud1 --namespace cloud1
+skupper expose service hybrid-cloud-backend.cloud1 --port 80 --address hybrid-cloud-backend-skupper --protocol http -n cloud1
+----
+
+=== Cloud2
+
+[source,bash]
+----
+kn service create 'hybrid-cloud-backend' --image=quay.io/agroom/hybrid-cloud-app-backend:latest \
+  --label='app.openshift.io/runtime=quarkus'  \
+  --annotation autoscaling.knative.dev/maxScale="1" \
+  --annotation autoscaling.knative.dev/window="16s" \
+  --concurrency-limit 1 \
+  --env CLOUDID=cloud2 --namespace cloud2
+skupper expose service hybrid-cloud-backend.cloud2 --port 80 --address hybrid-cloud-backend-skupper  --protocol http -n cloud2
+----
+  
+=== Cloud 3
+
+[source,bash]
+----
+kn service create 'hybrid-cloud-backend' --image=quay.io/agroom/hybrid-cloud-app-backend:latest \
+  --label='app.openshift.io/runtime=quarkus'  \
+  --annotation autoscaling.knative.dev/maxScale="1" \
+  --annotation autoscaling.knative.dev/window="16s" \
+  --concurrency-limit 1 \
+  --env CLOUDID=cloud3 --namespace cloud3
+skupper expose service hybrid-cloud-backend.cloud3 --port 80 --address hybrid-cloud-backend-skupper --protocol http -n cloud3
+----
+
+== Burst Testing
+
+It is possible to verify the burst without user input using the  following https://github.com/rakyll/hey[hey] scripts:
 
 Get the URL to access the frontend application:
 
@@ -218,10 +317,6 @@ Get the URL to access the frontend application:
 ----
 export API_URL=http://$(oc get route -n cloud1 hybrid-cloud-frontend -ojsonpath='{.spec.host}')
 ----
-
-== Burst Testing
-
-It is possible to verify the burst without user input using the  following https://github.com/rakyll/hey[hey] scripts:
 
 === Cloud-1 burst to Cloud-2
 
