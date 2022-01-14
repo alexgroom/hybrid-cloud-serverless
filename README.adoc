@@ -16,6 +16,12 @@ https://skupper.io]
 This description is heavily based on the repo https://github.com/redhat-developer-demos/hybrid-cloud-serverless
 but has been simplified and made specific to OpenShift, Skupper CLI and kn CLI rather than yaml/kustomize and kubectl.
 
+The expected outcome will look a little like this, with 3 deployed backends across different clouds supporting the one 
+front end. Traffic is constrained by Serverless autoscaling and skupper, so will burst out to the other clouds under load, 
+but being Serverlesss, pods will only run on demand.
+
+image:https://raw.githubusercontent.com/alexgroom/hybrid-cloud-serverless/main/skupperserverless.png[width=800]
+
 == Prerequisites
 
 For a basic demo you need an OpenShift cluster at least with 3 namespaces and non-priveleged account
@@ -54,6 +60,12 @@ The following table shows the cloud and what components gets installed on each o
 | Weight    | 0 | 15 | 20
 |===
 
+== Execution Script
+
+The fastest way to deploy is to use the script `skupperserverless.sh` in this repo. Copy (clone?) and edit this 
+script so the environment variables reflect your chosen cluster locations, projects and names. It works on one 
+cluster and will work on multiple assuming you have login access from the same terminal. Alternatively you can 
+follow the manual step by step instructions below:
 
 == Single cluster, multiple namespaces
 
