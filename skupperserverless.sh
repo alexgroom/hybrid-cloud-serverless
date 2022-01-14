@@ -7,10 +7,10 @@ export CLOUD2_LOGIN='https://api.cluster-6s5fq.6s5fq.sandbox693.opentlc.com:6443
 export CLOUD3_LOGIN='https://api.cluster-6s5fq.6s5fq.sandbox693.opentlc.com:6443 -u user1 -p openshift'
 export CLOUD1_PROJ=cloud1
 export CLOUD2_PROJ=cloud2
-export CLOUD2_PROJ=cloud3
+export CLOUD3_PROJ=cloud3
 export CLOUD1_DISP=cloud1
 export CLOUD2_DISP=cloud2
-export CLOUD2_DISP-cloud3
+export CLOUD3_DISP=cloud3
 #
 # create projects
 oc login $CLOUD1_LOGIN
@@ -73,4 +73,12 @@ kn service create 'hybrid-cloud-backend' --image=quay.io/agroom/hybrid-cloud-app
   --env CLOUDID=$CLOUD3_DISP --namespace $CLOUD3_PROJ
 # expose the backend service via skupper
 skupper expose service hybrid-cloud-backend.$CLOUD3_PROJ --port 80 --address hybrid-cloud-backend-skupper --protocol http -n $CLOUD3_PROJ
-
+#
+# Clean up tokens
+rm tok1.yaml
+rm tok2.yaml
+#
+# set default to CLOUD1 since this is the master project with front end
+oc login $CLOUD1_LOGIN
+oc project $CLOUD1_PROJ
+#
