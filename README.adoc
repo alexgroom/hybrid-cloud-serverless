@@ -352,3 +352,6 @@ In order to burst from Cloud-1 to Cloud-2, you need to send at least `{cloud-2-w
 hey -z 2s -c 35 -m POST -d '{"text": "1+2+3","uppercase": false,"reverse": false}' \
   -H "Content-Type: application/json" $API_URL/api/send-request
 ----
+
+== Resource Limits
+In a constrained environment (eg Sandbox) setting memory resource limits on the KSVCs will help back-end pods run, for example request 100Mi and limit 200Mi should be good.
