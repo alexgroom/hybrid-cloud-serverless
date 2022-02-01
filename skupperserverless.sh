@@ -81,4 +81,6 @@ rm tok2.yaml
 # set default to CLOUD1 since this is the master project with front end
 oc login $CLOUD1_LOGIN
 oc project $CLOUD1_PROJ
+# setup env for hey scripts using front-end route in cloud1
+export API_URL=http://$(oc get route hybrid-cloud-frontend -ojsonpath='{.spec.host}')
 #
