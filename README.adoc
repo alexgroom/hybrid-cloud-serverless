@@ -355,3 +355,7 @@ hey -z 2s -c 35 -m POST -d '{"text": "1+2+3","uppercase": false,"reverse": false
 
 == Resource Limits
 In a constrained environment (eg Sandbox) setting memory resource limits on the KSVCs will help back-end pods run, for example request 100Mi and limit 200Mi should be good.
+
+----
+kn service update 'hybrid-cloud-backend' --limit memory=200Mi --namespace <cloud> 
+----
